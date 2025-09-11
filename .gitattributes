@@ -1,0 +1,4 @@
+*.gpg binary -text
+*.tar binary -text
+*.tar.gz binary -text
+*.run binary -text
