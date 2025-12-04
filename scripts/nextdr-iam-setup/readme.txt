@@ -1,8 +1,8 @@
 Download helper scripts
 
-1. git clone https://github.com/kamlad/nextdrinstall.git
-2. cd nextdrinstall/scripts/nextdr-iam-setup
-
+1. curl -L -o nextdrinstall.zip https://github.com/nextdrai/nextdrinstall/archive/refs/heads/main.zip
+2. unzip nextdrinstall.zip
+3. cd nextdrinstall-main/scripts/nextdr-iam-setup
 
 
 This utility creates or updates the NextDR custom IAM roles and binds them to the right service accounts in three GCP projects.
@@ -16,7 +16,7 @@ How projects.yaml is used
 - Required keys: nextdr, source, target (GCP project IDs).
 - Required service accounts: nextdr_service_account, source_service_account, target_service_account (service account IDs; the script adds @<project>.iam.gserviceaccount.com unless you include the domain).
 - Required: compute_instance_service_account to grant Service Account Token Creator bindings across projects.
-- Example file lives beside the scripts: projects.yaml.example.
+
 
 Steps to run
 1) Update projects.yaml with your project IDs, service account IDs, and compute instance service account ID.
