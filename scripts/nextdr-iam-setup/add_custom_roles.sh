@@ -30,7 +30,7 @@ parse_yaml_value() {
   line=$(grep -E "^[[:space:]]*${key}:" "${file}" | head -n1 || true)
   line=${line#*:}
   line=$(echo "${line}" | sed -E 's/[[:space:]]+#.*$//' | sed -E 's/^[[:space:]]*//; s/[[:space:]]*$//')
-  line=$(echo "${line}" | sed -E 's/^["'\'']?//; s/["'\'']?$//')
+  line=$(echo "${line}" | sed -E "s/^['\"]?//; s/['\"]?\$//")
   echo "${line}"
 }
 
@@ -38,9 +38,7 @@ NEXTDR_PROJECT=$(parse_yaml_value "nextdr" "${PROJECTS_CONFIG}")
 SOURCE_PROJECT=$(parse_yaml_value "source" "${PROJECTS_CONFIG}")
 TARGET_PROJECT=$(parse_yaml_value "target" "${PROJECTS_CONFIG}")
 NEXTDR_SA_ID=$(parse_yaml_value "nextdr_service_account" "${PROJECTS_CONFIG}")
-SOURCE_SA_ID=$(parse_yaml_value "source_service_account" "${PROJECTS_CONFIG}")
-TARGET_SA_ID=$(parse_yaml_value "target_service_account" "${PROJECTS_CONFIG}")
-COMPUTE_INSTANCE_SA_ID=$(parse_yaml_value "compute_instance_service_account" "${PROJECTS_CONFIG}")
+#COMPUTE_INSTANCE_SA_ID=$(parse_yaml_value "compute_instance_service_account" "${PROJECTS_CONFIG}")
 
 if [[ -z "${NEXTDR_PROJECT}" || -z "${SOURCE_PROJECT}" || -z "${TARGET_PROJECT}" ]]; then
   echo "Error: Missing project IDs in ${PROJECTS_CONFIG}. Ensure nextdr, source, and target are all set."
@@ -52,11 +50,6 @@ echo "Using projects: ${PROJECTS[*]}"
 
 SERVICE_ACCOUNT_ID="${SERVICE_ACCOUNT_ID:-nextdr-service}"
 SERVICE_ACCOUNT_DISPLAY_NAME="${SERVICE_ACCOUNT_DISPLAY_NAME:-NextDR Service Account}"
-SERVICE_ACCOUNT_IDS=(
-  "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}"
-  "${SOURCE_SA_ID:-${SERVICE_ACCOUNT_ID}}"
-  "${TARGET_SA_ID:-${SERVICE_ACCOUNT_ID}}"
-)
 
 # --- Role Definitions ---
 # Using temporary YAML files for role definitions is a clean and declarative way
@@ -258,16 +251,16 @@ build_sa_email() {
 # whether it succeeds or fails.
 trap 'rm -f "${BACKUP_ROLE_FILE}" "${RESTORE_ROLE_FILE}"' EXIT
 
-for idx in "${!PROJECTS[@]}"; do
-  project="${PROJECTS[$idx]}"
-  sa_id="${SERVICE_ACCOUNT_IDS[$idx]}"
-
+for project in "${PROJECTS[@]}"; do
   echo ""
   echo "=== Processing project: ${project} ==="
   create_or_update_role "${BACKUP_ROLE_ID}" "${project}" "${BACKUP_ROLE_FILE}"
   create_or_update_role "${RESTORE_ROLE_ID}" "${project}" "${RESTORE_ROLE_FILE}"
-  create_service_account "${project}" "${sa_id}" "${SERVICE_ACCOUNT_DISPLAY_NAME}"
 done
+
+echo ""
+echo "Ensuring NextDR service account exists in nextdr project..."
+create_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${SERVICE_ACCOUNT_DISPLAY_NAME}"
 
 echo ""
 echo "Assigning NextDR Backup Role to nextdr_service_account in source project..."
@@ -275,40 +268,29 @@ NEXTDR_SA_EMAIL="$(build_sa_email "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${NE
 grant_role_to_service_account "${SOURCE_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP_ROLE_ID}"
 
 echo ""
-echo "Assigning NextDR Backup Role to source_service_account in source project..."
-SOURCE_SA_EMAIL="$(build_sa_email "${SOURCE_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${SOURCE_PROJECT}")"
-grant_role_to_service_account "${SOURCE_PROJECT}" "${SOURCE_SA_EMAIL}" "${BACKUP_ROLE_ID}"
+echo "Assigning NextDR Backup and Restore Roles to nextdr_service_account in nextdr and target projects..."
+grant_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP_ROLE_ID}"
+grant_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${RESTORE_ROLE_ID}"
+grant_role_to_service_account "${TARGET_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP_ROLE_ID}"
+grant_role_to_service_account "${TARGET_PROJECT}" "${NEXTDR_SA_EMAIL}" "${RESTORE_ROLE_ID}"
 
 echo ""
-echo "Assigning NextDR Backup and Restore Roles to target_service_account in nextdr and target projects..."
-TARGET_SA_EMAIL="$(build_sa_email "${TARGET_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${TARGET_PROJECT}")"
-grant_role_to_service_account "${NEXTDR_PROJECT}" "${TARGET_SA_EMAIL}" "${BACKUP_ROLE_ID}"
-grant_role_to_service_account "${NEXTDR_PROJECT}" "${TARGET_SA_EMAIL}" "${RESTORE_ROLE_ID}"
-grant_role_to_service_account "${TARGET_PROJECT}" "${TARGET_SA_EMAIL}" "${BACKUP_ROLE_ID}"
-grant_role_to_service_account "${TARGET_PROJECT}" "${TARGET_SA_EMAIL}" "${RESTORE_ROLE_ID}"
+echo "Assigning Backup, Restore, and Token Creator roles to nextdr_service_account in nextdr project..."
+grant_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP_ROLE_ID}"
+grant_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${RESTORE_ROLE_ID}"
+grant_service_account_token_creator "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}"
 
-echo ""
-echo "Assigning Backup, Restore, and Token Creator roles to all service accounts in nextdr project..."
-NEXTDR_SA_EMAIL_NEXTDR="$(build_sa_email "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${NEXTDR_PROJECT}")"
-SOURCE_SA_EMAIL_NEXTDR="$(build_sa_email "${SOURCE_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${SOURCE_PROJECT}")"
-TARGET_SA_EMAIL_NEXTDR="$(build_sa_email "${TARGET_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${TARGET_PROJECT}")"
-for sa_email in "${NEXTDR_SA_EMAIL_NEXTDR}" "${SOURCE_SA_EMAIL_NEXTDR}" "${TARGET_SA_EMAIL_NEXTDR}"; do
-  grant_role_to_service_account "${NEXTDR_PROJECT}" "${sa_email}" "${BACKUP_ROLE_ID}"
-  grant_role_to_service_account "${NEXTDR_PROJECT}" "${sa_email}" "${RESTORE_ROLE_ID}"
-  grant_service_account_token_creator "${NEXTDR_PROJECT}" "${sa_email}"
-done
-
-if [[ -n "${COMPUTE_INSTANCE_SA_ID}" ]]; then
-  echo ""
-  echo "Assigning Service Account Token Creator to compute instance service account in source project..."
-  COMPUTE_INSTANCE_SA_EMAIL="$(build_sa_email "${COMPUTE_INSTANCE_SA_ID}" "${SOURCE_PROJECT}")"
-  grant_service_account_token_creator "${SOURCE_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}"
-  grant_service_account_token_creator "${TARGET_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}"
-  grant_service_account_token_creator "${NEXTDR_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}"
-else
-  echo ""
-  echo "No compute_instance_service_account specified in ${PROJECTS_CONFIG}; skipping token binding."
-fi
+#if [[ -n "${COMPUTE_INSTANCE_SA_ID}" ]]; then
+#  echo ""
+#  echo "Assigning Service Account Token Creator to compute instance service account in source project..."
+#  COMPUTE_INSTANCE_SA_EMAIL="$(build_sa_email "${COMPUTE_INSTANCE_SA_ID}" "${SOURCE_PROJECT}")"
+#  grant_service_account_token_creator "${SOURCE_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}"
+#  grant_service_account_token_creator "${TARGET_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}"
+#  grant_service_account_token_creator "${NEXTDR_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}"
+#else
+#  echo ""
+#  echo "No compute_instance_service_account specified in ${PROJECTS_CONFIG}; skipping token binding."
+#fi
 
 echo ""
 echo "Script finished."

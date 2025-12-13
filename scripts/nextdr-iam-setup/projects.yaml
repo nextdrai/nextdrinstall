@@ -1,12 +1,10 @@
 # Project IDs for creating/updating custom IAM roles
-nextdr: "nextdr"
-source: "source"
-target: "target"
+nextdr: "nextdr2"
+source: "source2-480914"
+target: "target2-480915"
 
 
 # Required: service account IDs per project
 nextdr_service_account: "nextdr-service-software"
-source_service_account: "nextdr-service-source"
-target_service_account: "nextdr-service-target"
 # Required: compute instance service account ID in source project
 compute_instance_service_account: "<obtain from compute instance where nextdr is installed>"

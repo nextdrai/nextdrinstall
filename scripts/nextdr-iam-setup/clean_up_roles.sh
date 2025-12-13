@@ -35,8 +35,6 @@ NEXTDR_PROJECT=$(parse_yaml_value "nextdr" "${PROJECTS_CONFIG}")
 SOURCE_PROJECT=$(parse_yaml_value "source" "${PROJECTS_CONFIG}")
 TARGET_PROJECT=$(parse_yaml_value "target" "${PROJECTS_CONFIG}")
 NEXTDR_SA_ID=$(parse_yaml_value "nextdr_service_account" "${PROJECTS_CONFIG}")
-SOURCE_SA_ID=$(parse_yaml_value "source_service_account" "${PROJECTS_CONFIG}")
-TARGET_SA_ID=$(parse_yaml_value "target_service_account" "${PROJECTS_CONFIG}")
 COMPUTE_INSTANCE_SA_ID=$(parse_yaml_value "compute_instance_service_account" "${PROJECTS_CONFIG}")
 
 if [[ -z "${NEXTDR_PROJECT}" || -z "${SOURCE_PROJECT}" || -z "${TARGET_PROJECT}" ]]; then
@@ -98,44 +96,26 @@ delete_service_account() {
 echo "Starting cleanup using config: ${PROJECTS_CONFIG}"
 
 # --- Remove role bindings ---
-NEXTDR_SA_EMAIL_SOURCE="$(build_sa_email "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${NEXTDR_PROJECT}")"
-SOURCE_SA_EMAIL_SOURCE="$(build_sa_email "${SOURCE_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${SOURCE_PROJECT}")"
-TARGET_SA_EMAIL_TARGET="$(build_sa_email "${TARGET_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${TARGET_PROJECT}")"
+NEXTDR_SA_EMAIL="$(build_sa_email "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${NEXTDR_PROJECT}")"
 
-remove_custom_role_binding "${SOURCE_PROJECT}" "${NEXTDR_SA_EMAIL_SOURCE}" "${BACKUP_ROLE_ID}"
-remove_custom_role_binding "${SOURCE_PROJECT}" "${SOURCE_SA_EMAIL_SOURCE}" "${BACKUP_ROLE_ID}"
+remove_custom_role_binding "${SOURCE_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP_ROLE_ID}"
+remove_custom_role_binding "${TARGET_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP_ROLE_ID}"
+remove_custom_role_binding "${TARGET_PROJECT}" "${NEXTDR_SA_EMAIL}" "${RESTORE_ROLE_ID}"
 
-remove_custom_role_binding "${NEXTDR_PROJECT}" "${TARGET_SA_EMAIL_TARGET}" "${BACKUP_ROLE_ID}"
-remove_custom_role_binding "${NEXTDR_PROJECT}" "${TARGET_SA_EMAIL_TARGET}" "${RESTORE_ROLE_ID}"
-remove_custom_role_binding "${TARGET_PROJECT}" "${TARGET_SA_EMAIL_TARGET}" "${BACKUP_ROLE_ID}"
-remove_custom_role_binding "${TARGET_PROJECT}" "${TARGET_SA_EMAIL_TARGET}" "${RESTORE_ROLE_ID}"
-
-echo "Removing Backup, Restore, and Token Creator roles from all service accounts in nextdr project..."
-NEXTDR_SA_EMAIL_NEXTDR="$(build_sa_email "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${NEXTDR_PROJECT}")"
-SOURCE_SA_EMAIL_NEXTDR="$(build_sa_email "${SOURCE_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${SOURCE_PROJECT}")"
-TARGET_SA_EMAIL_NEXTDR="$(build_sa_email "${TARGET_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${TARGET_PROJECT}")"
-for sa_email in "${NEXTDR_SA_EMAIL_NEXTDR}" "${SOURCE_SA_EMAIL_NEXTDR}" "${TARGET_SA_EMAIL_NEXTDR}"; do
-  remove_custom_role_binding "${NEXTDR_PROJECT}" "${sa_email}" "${BACKUP_ROLE_ID}"
-  remove_custom_role_binding "${NEXTDR_PROJECT}" "${sa_email}" "${RESTORE_ROLE_ID}"
-  remove_role_binding "${NEXTDR_PROJECT}" "${sa_email}" "roles/iam.serviceAccountTokenCreator"
-done
+echo "Removing Backup, Restore, and Token Creator roles from nextdr_service_account in nextdr project..."
+remove_custom_role_binding "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP_ROLE_ID}"
+remove_custom_role_binding "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${RESTORE_ROLE_ID}"
+remove_role_binding "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "roles/iam.serviceAccountTokenCreator"
 
 if [[ -n "${COMPUTE_INSTANCE_SA_ID}" ]]; then
-  echo "Removing Service Account Token Creator from compute instance service account in source project..."
-  COMPUTE_INSTANCE_SA_EMAIL_SOURCE="$(build_sa_email "${COMPUTE_INSTANCE_SA_ID}" "${SOURCE_PROJECT}")"
-  remove_role_binding "${SOURCE_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL_SOURCE}" "roles/iam.serviceAccountTokenCreator"
+  echo "Removing Service Account Token Creator from compute instance service account..."
+  COMPUTE_INSTANCE_SA_EMAIL="$(build_sa_email "${COMPUTE_INSTANCE_SA_ID}" "${SOURCE_PROJECT}")"
+  remove_role_binding "${SOURCE_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}" "roles/iam.serviceAccountTokenCreator"
+  remove_role_binding "${TARGET_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}" "roles/iam.serviceAccountTokenCreator"
+  remove_role_binding "${NEXTDR_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}" "roles/iam.serviceAccountTokenCreator"
 fi
 
 # --- Delete service accounts ---
-SERVICE_ACCOUNT_IDS=(
-  "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}"
-  "${SOURCE_SA_ID:-${SERVICE_ACCOUNT_ID}}"
-  "${TARGET_SA_ID:-${SERVICE_ACCOUNT_ID}}"
-)
-PROJECTS=("${NEXTDR_PROJECT}" "${SOURCE_PROJECT}" "${TARGET_PROJECT}")
-
-for idx in "${!PROJECTS[@]}"; do
-  delete_service_account "${PROJECTS[$idx]}" "${SERVICE_ACCOUNT_IDS[$idx]}"
-done
+delete_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}"
 
 echo "Cleanup completed."
