@@ -5,7 +5,7 @@ Download helper scripts
 3. cd nextdrinstall-main/scripts/nextdr-iam-setup
 
 
-This utility enables the required GCP APIs, then creates or updates the NextDR custom IAM roles and binds them to the right service accounts in three GCP projects.
+This utility enables the required GCP APIs, creates the needed service accounts, then creates or updates the NextDR custom IAM roles and binds them to the right service accounts in three GCP projects.
 
 How run.sh works
 - Enables the following APIs across your nextdr, source, and target projects by calling enable_apis.sh:
@@ -21,6 +21,7 @@ How run.sh works
 How projects.yaml is used
 - Required keys: nextdr, source, target (GCP project IDs).
 - Required service account: nextdr_service_account (service account ID; the script adds @<project>.iam.gserviceaccount.com unless you include the domain).
+- Optional: source_service_account and target_service_account. When provided, the script ensures those service accounts exist in their respective projects but does not grant them any roles.
 - Required: compute_instance_service_account to grant Service Account Token Creator bindings across projects.
 
 

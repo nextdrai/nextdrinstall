@@ -38,6 +38,8 @@ NEXTDR_PROJECT=$(parse_yaml_value "nextdr" "${PROJECTS_CONFIG}")
 SOURCE_PROJECT=$(parse_yaml_value "source" "${PROJECTS_CONFIG}")
 TARGET_PROJECT=$(parse_yaml_value "target" "${PROJECTS_CONFIG}")
 NEXTDR_SA_ID=$(parse_yaml_value "nextdr_service_account" "${PROJECTS_CONFIG}")
+SOURCE_SA_ID=$(parse_yaml_value "source_service_account" "${PROJECTS_CONFIG}")
+TARGET_SA_ID=$(parse_yaml_value "target_service_account" "${PROJECTS_CONFIG}")
 #COMPUTE_INSTANCE_SA_ID=$(parse_yaml_value "compute_instance_service_account" "${PROJECTS_CONFIG}")
 
 if [[ -z "${NEXTDR_PROJECT}" || -z "${SOURCE_PROJECT}" || -z "${TARGET_PROJECT}" ]]; then
@@ -50,6 +52,8 @@ echo "Using projects: ${PROJECTS[*]}"
 
 SERVICE_ACCOUNT_ID="${SERVICE_ACCOUNT_ID:-nextdr-service}"
 SERVICE_ACCOUNT_DISPLAY_NAME="${SERVICE_ACCOUNT_DISPLAY_NAME:-NextDR Service Account}"
+SOURCE_SERVICE_ACCOUNT_DISPLAY_NAME="${SOURCE_SERVICE_ACCOUNT_DISPLAY_NAME:-NextDR Source Service Account}"
+TARGET_SERVICE_ACCOUNT_DISPLAY_NAME="${TARGET_SERVICE_ACCOUNT_DISPLAY_NAME:-NextDR Target Service Account}"
 
 # --- Role Definitions ---
 # Using temporary YAML files for role definitions is a clean and declarative way
@@ -261,6 +265,18 @@ done
 echo ""
 echo "Ensuring NextDR service account exists in nextdr project..."
 create_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${SERVICE_ACCOUNT_DISPLAY_NAME}"
+
+if [[ -n "${SOURCE_SA_ID}" ]]; then
+  echo ""
+  echo "Ensuring service account exists in source project..."
+  create_service_account "${SOURCE_PROJECT}" "${SOURCE_SA_ID}" "${SOURCE_SERVICE_ACCOUNT_DISPLAY_NAME}"
+fi
+
+if [[ -n "${TARGET_SA_ID}" ]]; then
+  echo ""
+  echo "Ensuring service account exists in target project..."
+  create_service_account "${TARGET_PROJECT}" "${TARGET_SA_ID}" "${TARGET_SERVICE_ACCOUNT_DISPLAY_NAME}"
+fi
 
 echo ""
 echo "Assigning NextDR Backup Role to nextdr_service_account in source project..."
