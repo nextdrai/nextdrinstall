@@ -90,6 +90,7 @@ includedPermissions:
 - storage.objects.get
 - storage.objects.list
 - storage.buckets.create
+- storage.buckets.setIamPolicy
 - resourcemanager.projects.getIamPolicy
 - cloudsql.instances.list
 - cloudsql.instances.get
