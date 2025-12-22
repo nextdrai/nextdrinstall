@@ -104,6 +104,27 @@ includedPermissions:
 - compute.subnetworks.list
 - compute.firewalls.list
 - compute.routes.list
+- backupdr.backupPlanAssociations.createForCloudSqlInstance
+- backupdr.backupPlanAssociations.deleteForCloudSqlInstance
+- backupdr.backupPlanAssociations.fetchForCloudSqlInstance
+- backupdr.backupPlanAssociations.getForCloudSqlInstance
+- backupdr.backupPlanAssociations.triggerBackupForCloudSqlInstance
+- backupdr.backupPlans.get
+- backupdr.backupPlans.list
+- backupdr.backupPlans.useForCloudSqlInstance
+- backupdr.backupVaults.get
+- backupdr.backupVaults.list
+- compute.disks.get
+- compute.disks.getIamPolicy
+- compute.disks.list
+- compute.disks.useReadOnly
+- compute.instances.get
+- compute.projects.get
+- compute.snapshots.create
+- compute.snapshots.get
+- compute.snapshots.list
+- compute.snapshots.setIamPolicy
+- compute.snapshots.useReadOnly
 EOL
 
 # 2. NextDR Restore Role
