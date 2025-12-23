@@ -19,8 +19,7 @@ How run.sh works
 
 How projects.yaml is used
 - Required keys: nextdr, source, target (GCP project IDs).
-- Required service account: nextdr_service_account (service account ID; the script adds @<project>.iam.gserviceaccount.com unless you include the domain).
-
+- Required service accounts: nextdr_service_account, source_service_account, target_service_account
 
 Steps to run
 1) Update projects.yaml with your project IDs, NextDR service account ID
