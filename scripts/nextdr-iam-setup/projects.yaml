@@ -8,6 +8,3 @@ target: "target2-480915"
 nextdr_service_account: "nextdr-service-software"
 source_service_account: "nextdr-service-source"
 target_service_account: "nextdr-service-target"
-
-# Required: compute instance service account ID in source project
-compute_instance_service_account: "<obtain from compute instance where nextdr is installed>"

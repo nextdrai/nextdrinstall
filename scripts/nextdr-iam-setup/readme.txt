@@ -14,19 +14,16 @@ How run.sh works
     * Cloud SQL Admin API (sqladmin.googleapis.com)
     * Cloud Resource Manager API (cloudresourcemanager.googleapis.com)
     * IAM Service Account Credentials API (iamcredentials.googleapis.com)
-- Wrapper around enable_apis.sh and add_custom_roles.sh so you do not have to set environment variables manually.
 - Reads a YAML config (projects.yaml by default) and exports PROJECTS_CONFIG before calling the helper scripts.
 - Exits on first failure (set -e) so fix any error before rerunning.
 
 How projects.yaml is used
 - Required keys: nextdr, source, target (GCP project IDs).
 - Required service account: nextdr_service_account (service account ID; the script adds @<project>.iam.gserviceaccount.com unless you include the domain).
-- Optional: source_service_account and target_service_account. When provided, the script ensures those service accounts exist in their respective projects but does not grant them any roles.
-- Required: compute_instance_service_account to grant Service Account Token Creator bindings across projects.
 
 
 Steps to run
-1) Update projects.yaml with your project IDs, service account ID, and compute instance service account ID.
+1) Update projects.yaml with your project IDs, NextDR service account ID
 2) Authenticate with gcloud using an account that can create custom roles and update IAM policy bindings:
       gcloud auth login
 3) Run the wrapper (uses projects.yaml by default):
