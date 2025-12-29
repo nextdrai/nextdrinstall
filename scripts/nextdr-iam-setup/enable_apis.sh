@@ -39,6 +39,7 @@ APIS=(
   sqladmin.googleapis.com
   cloudresourcemanager.googleapis.com
   iamcredentials.googleapis.com
+  servicenetworking.googleapis.com
 )
 
 for project in "${PROJECTS[@]}"; do
