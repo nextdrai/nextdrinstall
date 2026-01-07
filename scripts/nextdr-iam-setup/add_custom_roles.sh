@@ -261,6 +261,51 @@ grant_service_account_token_creator() {
     --quiet
 }
 
+ensure_target_vpc_peering() {
+  local project_id=$1
+
+  echo ""
+  echo "Enabling Service Networking API in target project '${project_id}'..."
+  gcloud services enable servicenetworking.googleapis.com \
+    --project="${project_id}"
+
+  echo ""
+  echo "Ensuring allocated IP range exists in target project '${project_id}'..."
+  if gcloud compute addresses describe google-managed-services-default \
+    --global \
+    --project="${project_id}" &> /dev/null; then
+    echo "Allocated IP range 'google-managed-services-default' already exists."
+  else
+    gcloud compute addresses create google-managed-services-default \
+      --global \
+      --purpose=VPC_PEERING \
+      --prefix-length=16 \
+      --network=default \
+      --project="${project_id}"
+  fi
+
+  echo ""
+  echo "Ensuring VPC peering is connected in target project '${project_id}'..."
+  if gcloud services vpc-peerings list \
+    --network=default \
+    --project="${project_id}" \
+    --format="value(service)" | grep -q "^servicenetworking.googleapis.com$"; then
+    echo "VPC peering for Service Networking already connected."
+  else
+    gcloud services vpc-peerings connect \
+      --service=servicenetworking.googleapis.com \
+      --network=default \
+      --ranges=google-managed-services-default \
+      --project="${project_id}"
+  fi
+
+  echo ""
+  echo "Current VPC peerings in target project '${project_id}':"
+  gcloud services vpc-peerings list \
+    --network=default \
+    --project="${project_id}"
+}
+
 build_sa_email() {
   local sa_id=$1
   local project_id=$2
@@ -317,6 +362,10 @@ echo "Assigning Backup, Restore, and Token Creator roles to nextdr_service_accou
 grant_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP_ROLE_ID}"
 grant_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${RESTORE_ROLE_ID}"
 grant_service_account_token_creator "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}"
+
+echo ""
+echo "Setting up Service Networking peering in target project..."
+ensure_target_vpc_peering "${TARGET_PROJECT}"
 
 #if [[ -n "${COMPUTE_INSTANCE_SA_ID}" ]]; then
 #  echo ""
