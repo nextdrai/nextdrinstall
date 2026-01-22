@@ -91,14 +91,15 @@ includedPermissions:
 - storage.objects.list
 - storage.buckets.create
 - storage.buckets.setIamPolicy
+- storage.buckets.update
 - resourcemanager.projects.getIamPolicy
+- resourcemanager.projects.get
 - cloudsql.instances.list
 - cloudsql.instances.get
 - cloudsql.backupRuns.create
 - cloudsql.backupRuns.list
 - cloudsql.databases.list
 - cloudsql.instances.export
-- resourcemanager.projects.get
 - serviceusage.services.list
 - compute.networks.list
 - compute.subnetworks.list
@@ -125,6 +126,23 @@ includedPermissions:
 - compute.snapshots.list
 - compute.snapshots.setIamPolicy
 - compute.snapshots.useReadOnly
+- storagetransfer.agentpools.create
+- storagetransfer.agentpools.delete
+- storagetransfer.agentpools.get
+- storagetransfer.agentpools.list
+- storagetransfer.agentpools.update
+- storagetransfer.jobs.create
+- storagetransfer.jobs.delete
+- storagetransfer.jobs.get
+- storagetransfer.jobs.list
+- storagetransfer.jobs.run
+- storagetransfer.jobs.update
+- storagetransfer.operations.cancel
+- storagetransfer.operations.get
+- storagetransfer.operations.list
+- storagetransfer.operations.pause
+- storagetransfer.operations.resume
+- storagetransfer.projects.getServiceAccount
 EOL
 
 # 2. NextDR Restore Role
@@ -250,16 +268,6 @@ grant_role_to_service_account() {
     --quiet
 }
 
-grant_service_account_token_creator() {
-  local project_id=$1
-  local sa_email=$2
-
-  echo "Granting Service Account Token Creator to '${sa_email}' in project '${project_id}'..."
-  gcloud projects add-iam-policy-binding "${project_id}" \
-    --member="serviceAccount:${sa_email}" \
-    --role="roles/iam.serviceAccountTokenCreator" \
-    --quiet
-}
 
 ensure_target_vpc_peering() {
   local project_id=$1
@@ -361,23 +369,10 @@ echo ""
 echo "Assigning Backup, Restore, and Token Creator roles to nextdr_service_account in nextdr project..."
 grant_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP_ROLE_ID}"
 grant_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${RESTORE_ROLE_ID}"
-grant_service_account_token_creator "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}"
 
 echo ""
 echo "Setting up Service Networking peering in target project..."
 ensure_target_vpc_peering "${TARGET_PROJECT}"
-
-#if [[ -n "${COMPUTE_INSTANCE_SA_ID}" ]]; then
-#  echo ""
-#  echo "Assigning Service Account Token Creator to compute instance service account in source project..."
-#  COMPUTE_INSTANCE_SA_EMAIL="$(build_sa_email "${COMPUTE_INSTANCE_SA_ID}" "${SOURCE_PROJECT}")"
-#  grant_service_account_token_creator "${SOURCE_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}"
-#  grant_service_account_token_creator "${TARGET_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}"
-#  grant_service_account_token_creator "${NEXTDR_PROJECT}" "${COMPUTE_INSTANCE_SA_EMAIL}"
-#else
-#  echo ""
-#  echo "No compute_instance_service_account specified in ${PROJECTS_CONFIG}; skipping token binding."
-#fi
 
 echo ""
 echo "Script finished."
