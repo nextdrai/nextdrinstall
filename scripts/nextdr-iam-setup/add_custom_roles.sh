@@ -271,6 +271,8 @@ grant_role_to_service_account() {
 
 ensure_target_vpc_peering() {
   local project_id=$1
+  local range_name=""
+  local existing_range_names=""
 
   echo ""
   echo "Enabling Service Networking API in target project '${project_id}'..."
@@ -279,12 +281,23 @@ ensure_target_vpc_peering() {
 
   echo ""
   echo "Ensuring allocated IP range exists in target project '${project_id}'..."
+  existing_range_names=$(gcloud compute addresses list \
+    --global \
+    --project="${project_id}" \
+    --filter="purpose=VPC_PEERING AND network=default" \
+    --format="value(name)")
+
   if gcloud compute addresses describe google-managed-services-default \
     --global \
     --project="${project_id}" &> /dev/null; then
-    echo "Allocated IP range 'google-managed-services-default' already exists."
+    range_name="google-managed-services-default"
+    echo "Allocated IP range '${range_name}' already exists."
+  elif [[ -n "${existing_range_names}" ]]; then
+    range_name=$(echo "${existing_range_names}" | head -n1)
+    echo "Using existing allocated IP range '${range_name}'."
   else
-    gcloud compute addresses create google-managed-services-default \
+    range_name="google-managed-services-default"
+    gcloud compute addresses create "${range_name}" \
       --global \
       --purpose=VPC_PEERING \
       --prefix-length=16 \
@@ -300,11 +313,29 @@ ensure_target_vpc_peering() {
     --format="value(service)" | grep -q "^servicenetworking.googleapis.com$"; then
     echo "VPC peering for Service Networking already connected."
   else
-    gcloud services vpc-peerings connect \
+    if gcloud services vpc-peerings connect \
       --service=servicenetworking.googleapis.com \
       --network=default \
-      --ranges=google-managed-services-default \
-      --project="${project_id}"
+      --ranges="${range_name}" \
+      --project="${project_id}"; then
+      echo "VPC peering for Service Networking connected."
+    else
+      local existing_peer_ranges=""
+      existing_peer_ranges=$(gcloud services vpc-peerings list \
+        --network=default \
+        --project="${project_id}" \
+        --filter="service:servicenetworking.googleapis.com" \
+        --format="value(reservedPeeringRanges)")
+      if [[ -z "${existing_peer_ranges}" ]]; then
+        existing_peer_ranges="${range_name}"
+      fi
+      echo "CreateConnection failed; attempting UpdateConnection with ranges: ${existing_peer_ranges}"
+      gcloud services vpc-peerings update \
+        --service=servicenetworking.googleapis.com \
+        --network=default \
+        --ranges="${existing_peer_ranges}" \
+        --project="${project_id}"
+    fi
   fi
 
   echo ""
@@ -371,8 +402,12 @@ grant_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP
 grant_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "${RESTORE_ROLE_ID}"
 
 echo ""
-echo "Setting up Service Networking peering in target project..."
-ensure_target_vpc_peering "${TARGET_PROJECT}"
+if [[ "${ENABLE_VPC_PEERING:-0}" == "1" ]]; then
+  echo "Setting up Service Networking peering in target project..."
+  ensure_target_vpc_peering "${TARGET_PROJECT}"
+else
+  echo "Skipping Service Networking peering (enable with --with-vpc-peering)."
+fi
 
 echo ""
 echo "Script finished."
