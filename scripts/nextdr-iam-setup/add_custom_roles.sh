@@ -157,14 +157,14 @@ stage: "BETA"
 includedPermissions:
 - resourcemanager.projects.get  # To read basic project metadata.
 - serviceusage.services.list    # To verify that necessary APIs are enabled before starting a restore.
-- compute.projects.get          # To get project-level Compute Engine information.
-- compute.zoneOperations.get    # To check the status of ongoing operations like creating a disk or a VM.
+
 - resourcemanager.projects.setIamPolicy   # To apply a backed-up IAM policy to the project.
 
 
 
 #Compute Engine (VMs, Disks, Snapshots)
 
+- compute.projects.get          # To get project-level Compute Engine information.
 - compute.snapshots.get         # To find an existing snapshot.
 - compute.snapshots.create
 - compute.snapshots.delete
@@ -182,6 +182,54 @@ includedPermissions:
 - compute.subnetworks.useExternalIp
 - compute.subnetworks.list      # To list available subnetworks for VM placement.
 - compute.subnetworks.use
+- compute.zoneOperations.get    # To check the status of ongoing operations like creating a disk or a VM.
+
+# VPC networks + peering
+- compute.networks.create
+- compute.networks.delete
+- compute.networks.get
+- compute.networks.list
+- compute.networks.update
+- compute.networks.use
+- compute.networks.addPeering
+- compute.networks.removePeering
+- compute.networks.updatePeering
+- compute.networks.listPeeringRoutes
+
+# Subnets (incl. flow logs/private access via update)
+- compute.subnetworks.create
+- compute.subnetworks.delete
+- compute.subnetworks.get
+- compute.subnetworks.list
+- compute.subnetworks.update
+- compute.subnetworks.use
+- compute.subnetworks.setPrivateIpGoogleAccess
+
+# Routes
+- compute.routes.create
+- compute.routes.delete
+- compute.routes.get
+- compute.routes.list
+
+# Cloud Router / NAT
+- compute.routers.create
+- compute.routers.delete
+- compute.routers.get
+- compute.routers.list
+- compute.routers.update
+- compute.routers.use
+
+# Static external IPs (regional)
+- compute.addresses.create
+- compute.addresses.delete
+- compute.addresses.get
+- compute.addresses.list
+- compute.addresses.use
+
+# Firewalls (NOTE: read-only in networkAdmin)
+- compute.firewalls.get
+- compute.firewalls.list
+
 
 # Cloud SQL
 
@@ -194,6 +242,16 @@ includedPermissions:
 - cloudsql.instances.create     # Create instance
 - cloudsql.databases.create
 - cloudsql.databases.list 
+
+
+# Service Networking (private services access style connections)
+- servicenetworking.operations.get
+- servicenetworking.services.addPeering
+- servicenetworking.services.deleteConnection
+- servicenetworking.services.get
+- servicenetworking.services.listPeeredDnsDomains
+- servicenetworking.services.createPeeredDnsDomain
+- servicenetworking.services.deletePeeredDnsDomain
 
 # Cloud Storage
 
