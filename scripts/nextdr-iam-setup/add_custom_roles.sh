@@ -61,13 +61,36 @@ TARGET_SERVICE_ACCOUNT_DISPLAY_NAME="${TARGET_SERVICE_ACCOUNT_DISPLAY_NAME:-Next
 # Using temporary YAML files for role definitions is a clean and declarative way
 # to manage permissions with the gcloud CLI.
 
-# 1. NextDR Backup Role
 BACKUP_ROLE_ID="${BACKUP_ROLE_ID:-nextdr_backup}"
-# Create a temporary file to hold the role definition
-BACKUP_ROLE_FILE=$(mktemp)
-# Write the role definition to the temporary file
-cat > "${BACKUP_ROLE_FILE}" << EOL
-title: "NextDR Backup Role"
+RESTORE_ROLE_ID="${RESTORE_ROLE_ID:-nextdr_restore}"
+
+role_title_sa_id_for_project() {
+  local project_id=$1
+
+  if [[ "${project_id}" == "${NEXTDR_PROJECT}" ]]; then
+    echo "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}"
+    return
+  fi
+
+  if [[ "${project_id}" == "${SOURCE_PROJECT}" && -n "${SOURCE_SA_ID}" ]]; then
+    echo "${SOURCE_SA_ID}"
+    return
+  fi
+
+  if [[ "${project_id}" == "${TARGET_PROJECT}" && -n "${TARGET_SA_ID}" ]]; then
+    echo "${TARGET_SA_ID}"
+    return
+  fi
+
+  echo "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}"
+}
+
+write_backup_role_file() {
+  local role_file=$1
+  local sa_id=$2
+
+  cat > "${role_file}" << EOL
+title: "NextDR Backup Role (${sa_id})"
 description: "Grants permissions required for NextDR to perform backup operations on GCP resources."
 stage: "BETA"
 includedPermissions:
@@ -146,14 +169,14 @@ includedPermissions:
 - storagetransfer.operations.resume
 - storagetransfer.projects.getServiceAccount
 EOL
+}
 
-# 2. NextDR Restore Role
-RESTORE_ROLE_ID="${RESTORE_ROLE_ID:-nextdr_restore}"
-# Create a temporary file to hold the role definition
-RESTORE_ROLE_FILE=$(mktemp)
-# Write the role definition to the temporary file
-cat > "${RESTORE_ROLE_FILE}" << EOL
-title: "NextDR Restore Role"
+write_restore_role_file() {
+  local role_file=$1
+  local sa_id=$2
+
+  cat > "${role_file}" << EOL
+title: "NextDR Restore Role (${sa_id})"
 description: "Grants permissions required for NextDR to restore GCP resources from backups."
 stage: "BETA"
 includedPermissions:
@@ -264,8 +287,7 @@ includedPermissions:
 - storage.buckets.create
 - storage.buckets.setIamPolicy
 EOL
-
-
+}
 
 
 # --- Function to Create or Update a Role ---
@@ -416,16 +438,17 @@ build_sa_email() {
   fi
 }
 
-# --- Execute and Cleanup ---
-# The 'trap' command ensures that the temporary files are deleted when the script exits,
-# whether it succeeds or fails.
-trap 'rm -f "${BACKUP_ROLE_FILE}" "${RESTORE_ROLE_FILE}"' EXIT
-
 for project in "${PROJECTS[@]}"; do
   echo ""
   echo "=== Processing project: ${project} ==="
+  ROLE_SA_ID="$(role_title_sa_id_for_project "${project}")"
+  BACKUP_ROLE_FILE=$(mktemp)
+  RESTORE_ROLE_FILE=$(mktemp)
+  write_backup_role_file "${BACKUP_ROLE_FILE}" "${ROLE_SA_ID}"
+  write_restore_role_file "${RESTORE_ROLE_FILE}" "${ROLE_SA_ID}"
   create_or_update_role "${BACKUP_ROLE_ID}" "${project}" "${BACKUP_ROLE_FILE}"
   create_or_update_role "${RESTORE_ROLE_ID}" "${project}" "${RESTORE_ROLE_FILE}"
+  rm -f "${BACKUP_ROLE_FILE}" "${RESTORE_ROLE_FILE}"
 done
 
 echo ""
