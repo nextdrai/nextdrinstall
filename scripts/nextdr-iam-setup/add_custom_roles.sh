@@ -40,6 +40,8 @@ TARGET_PROJECT=$(parse_yaml_value "target" "${PROJECTS_CONFIG}")
 NEXTDR_SA_ID=$(parse_yaml_value "nextdr_service_account" "${PROJECTS_CONFIG}")
 SOURCE_SA_ID=$(parse_yaml_value "source_service_account" "${PROJECTS_CONFIG}")
 TARGET_SA_ID=$(parse_yaml_value "target_service_account" "${PROJECTS_CONFIG}")
+BACKUP_ROLE_ID=$(parse_yaml_value "backup_role_id" "${PROJECTS_CONFIG}")
+RESTORE_ROLE_ID=$(parse_yaml_value "restore_role_id" "${PROJECTS_CONFIG}")
 #COMPUTE_INSTANCE_SA_ID=$(parse_yaml_value "compute_instance_service_account" "${PROJECTS_CONFIG}")
 
 if [[ -z "${NEXTDR_PROJECT}" || -z "${SOURCE_PROJECT}" || -z "${TARGET_PROJECT}" ]]; then
@@ -60,7 +62,7 @@ TARGET_SERVICE_ACCOUNT_DISPLAY_NAME="${TARGET_SERVICE_ACCOUNT_DISPLAY_NAME:-Next
 # to manage permissions with the gcloud CLI.
 
 # 1. NextDR Backup Role
-BACKUP_ROLE_ID="nextdr_backup"
+BACKUP_ROLE_ID="${BACKUP_ROLE_ID:-nextdr_backup}"
 # Create a temporary file to hold the role definition
 BACKUP_ROLE_FILE=$(mktemp)
 # Write the role definition to the temporary file
@@ -146,7 +148,7 @@ includedPermissions:
 EOL
 
 # 2. NextDR Restore Role
-RESTORE_ROLE_ID="nextdr_restore"
+RESTORE_ROLE_ID="${RESTORE_ROLE_ID:-nextdr_restore}"
 # Create a temporary file to hold the role definition
 RESTORE_ROLE_FILE=$(mktemp)
 # Write the role definition to the temporary file

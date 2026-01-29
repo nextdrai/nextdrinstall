@@ -8,3 +8,7 @@ target: "target2-480915"
 nextdr_service_account: "nextdr-service-software"
 source_service_account: "nextdr-service-source"
 target_service_account: "nextdr-service-target"
+
+# Optional: custom role IDs (defaults: nextdr_backup, nextdr_restore)
+#backup_role_id: "nextdr_backup_kam"
+#restore_role_id: "nextdr_restore_kam"

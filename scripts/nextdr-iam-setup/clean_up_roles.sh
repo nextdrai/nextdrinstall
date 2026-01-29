@@ -36,6 +36,8 @@ SOURCE_PROJECT=$(parse_yaml_value "source" "${PROJECTS_CONFIG}")
 TARGET_PROJECT=$(parse_yaml_value "target" "${PROJECTS_CONFIG}")
 NEXTDR_SA_ID=$(parse_yaml_value "nextdr_service_account" "${PROJECTS_CONFIG}")
 COMPUTE_INSTANCE_SA_ID=$(parse_yaml_value "compute_instance_service_account" "${PROJECTS_CONFIG}")
+BACKUP_ROLE_ID=$(parse_yaml_value "backup_role_id" "${PROJECTS_CONFIG}")
+RESTORE_ROLE_ID=$(parse_yaml_value "restore_role_id" "${PROJECTS_CONFIG}")
 
 if [[ -z "${NEXTDR_PROJECT}" || -z "${SOURCE_PROJECT}" || -z "${TARGET_PROJECT}" ]]; then
   echo "Error: Missing project IDs in ${PROJECTS_CONFIG}. Ensure nextdr, source, and target are all set."
@@ -44,8 +46,8 @@ fi
 
 SERVICE_ACCOUNT_ID="${SERVICE_ACCOUNT_ID:-nextdr-service}"
 
-BACKUP_ROLE_ID="nextdr_backup"
-RESTORE_ROLE_ID="nextdr_restore"
+BACKUP_ROLE_ID="${BACKUP_ROLE_ID:-nextdr_backup}"
+RESTORE_ROLE_ID="${RESTORE_ROLE_ID:-nextdr_restore}"
 
 build_sa_email() {
   local sa_id=$1

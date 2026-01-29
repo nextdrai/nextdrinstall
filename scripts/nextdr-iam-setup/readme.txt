@@ -20,6 +20,7 @@ How run.sh works
 How projects.yaml is used
 - Required keys: nextdr, source, target (GCP project IDs).
 - Required service accounts: nextdr_service_account, source_service_account, target_service_account
+- Optional custom role IDs: backup_role_id, restore_role_id (defaults: nextdr_backup, nextdr_restore)
 
 Steps to run
 1) Update projects.yaml with your project IDs, NextDR service account ID
