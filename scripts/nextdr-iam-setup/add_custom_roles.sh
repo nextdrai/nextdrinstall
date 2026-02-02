@@ -328,6 +328,18 @@ grant_role_to_service_account() {
     --quiet
 }
 
+grant_predefined_role_to_service_account() {
+  local project_id=$1
+  local sa_email=$2
+  local role_name=$3
+
+  echo "Granting predefined role '${role_name}' to '${sa_email}' in project '${project_id}'..."
+  gcloud projects add-iam-policy-binding "${project_id}" \
+    --member="serviceAccount:${sa_email}" \
+    --role="${role_name}" \
+    --quiet
+}
+
 
 ensure_target_vpc_peering() {
   local project_id=$1
@@ -448,6 +460,12 @@ echo ""
 echo "Assigning NextDR Backup Role to nextdr_service_account in source project..."
 NEXTDR_SA_EMAIL="$(build_sa_email "${NEXTDR_SA_ID:-${SERVICE_ACCOUNT_ID}}" "${NEXTDR_PROJECT}")"
 grant_role_to_service_account "${SOURCE_PROJECT}" "${NEXTDR_SA_EMAIL}" "${BACKUP_ROLE_ID}"
+
+echo ""
+echo "Assigning Viewer role to nextdr_service_account in nextdr, source, and target projects..."
+grant_predefined_role_to_service_account "${NEXTDR_PROJECT}" "${NEXTDR_SA_EMAIL}" "roles/viewer"
+grant_predefined_role_to_service_account "${SOURCE_PROJECT}" "${NEXTDR_SA_EMAIL}" "roles/viewer"
+grant_predefined_role_to_service_account "${TARGET_PROJECT}" "${NEXTDR_SA_EMAIL}" "roles/viewer"
 
 echo ""
 echo "Assigning NextDR Backup and Restore Roles to nextdr_service_account in nextdr and target projects..."
