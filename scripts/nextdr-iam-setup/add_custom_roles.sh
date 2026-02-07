@@ -157,55 +157,57 @@ title: "NextDR Restore Role"
 description: "Grants permissions required for NextDR to restore GCP resources from backups."
 stage: "BETA"
 includedPermissions:
+- orgpolicy.policies.list       # To read org policy constraints that can affect restore operations.
 - resourcemanager.projects.get  # To read basic project metadata.
-- serviceusage.services.list    # To verify that necessary APIs are enabled before starting a restore.
-
 - resourcemanager.projects.setIamPolicy   # To apply a backed-up IAM policy to the project.
+- serviceusage.services.enable  # To enable required services during restore preparation.
+- serviceusage.services.list    # To verify that necessary APIs are enabled before starting a restore.
 
 
 
 #Compute Engine (VMs, Disks, Snapshots)
 
-- compute.projects.get          # To get project-level Compute Engine information.
-- compute.snapshots.get         # To find an existing snapshot.
-- compute.snapshots.create
-- compute.snapshots.delete
-- compute.snapshots.list        # To list available snapshots.
-- compute.snapshots.useReadOnly # To use a snapshot as a source for a new disk.
 - compute.disks.create          # To create a new persistent disk from a snapshot.
+- compute.disks.delete          # To delete a disk. ( Kamlesh, need to ask Avi why we need this on target )
 - compute.disks.setLabels
 - compute.disks.use
-- compute.disks.delete          # To delete a disk. ( Kamlesh, need to ask Avi why we need this on target )
-- compute.instances.create      # To create a new VM instance.
 - compute.instances.attachDisk  # To attach the newly created disk to the VM instance.
+- compute.instances.create      # To create a new VM instance.
 - compute.instances.setMetadata # To apply original metadata to the restored instance.
 - compute.instances.setTags     # To apply original network tags to the restored instance.
 - compute.networks.list         # To list available networks for VM placement.
-- compute.subnetworks.useExternalIp
+- compute.projects.get          # To get project-level Compute Engine information.
+- compute.snapshots.create
+- compute.snapshots.delete
+- compute.snapshots.get         # To find an existing snapshot.
+- compute.snapshots.list        # To list available snapshots.
+- compute.snapshots.useReadOnly # To use a snapshot as a source for a new disk.
 - compute.subnetworks.list      # To list available subnetworks for VM placement.
 - compute.subnetworks.use
+- compute.subnetworks.useExternalIp
 - compute.zoneOperations.get    # To check the status of ongoing operations like creating a disk or a VM.
 
 # VPC networks + peering
+- compute.networks.addPeering
 - compute.networks.create
 - compute.networks.delete
 - compute.networks.get
 - compute.networks.list
-- compute.networks.update
-- compute.networks.use
-- compute.networks.addPeering
-- compute.networks.removePeering
-- compute.networks.updatePeering
 - compute.networks.listPeeringRoutes
+- compute.networks.removePeering
+- compute.networks.update
+- compute.networks.updatePeering
+- compute.networks.updatePolicy
+- compute.networks.use
 
 # Subnets (incl. flow logs/private access via update)
 - compute.subnetworks.create
 - compute.subnetworks.delete
 - compute.subnetworks.get
 - compute.subnetworks.list
+- compute.subnetworks.setPrivateIpGoogleAccess
 - compute.subnetworks.update
 - compute.subnetworks.use
-- compute.subnetworks.setPrivateIpGoogleAccess
 
 # Routes
 - compute.routes.create
@@ -229,40 +231,41 @@ includedPermissions:
 - compute.addresses.use
 
 # Firewalls (NOTE: read-only in networkAdmin)
+- compute.firewalls.create
 - compute.firewalls.get
 - compute.firewalls.list
 
 
 # Cloud SQL
 
-- cloudsql.instances.list       # To list existing instances, which may be the restore target.
-- cloudsql.instances.get        # view details of a specific instance.
 - cloudsql.backupRuns.list      # To find the specific backup you want to restore from.
-- cloudsql.instances.restoreBackup  # To initiate a restore from a backup run to an instance.
-- cloudsql.instances.import     # To restore from a SQL dump file located in Cloud Storage.
-- cloudsql.instances.update     # To make configuration changes to the instance after the restore.
-- cloudsql.instances.create     # Create instance
 - cloudsql.databases.create
 - cloudsql.databases.list 
+- cloudsql.instances.create     # Create instance
+- cloudsql.instances.get        # view details of a specific instance.
+- cloudsql.instances.import     # To restore from a SQL dump file located in Cloud Storage.
+- cloudsql.instances.list       # To list existing instances, which may be the restore target.
+- cloudsql.instances.restoreBackup  # To initiate a restore from a backup run to an instance.
+- cloudsql.instances.update     # To make configuration changes to the instance after the restore.
 
 
 # Service Networking (private services access style connections)
 - servicenetworking.operations.get
 - servicenetworking.services.addPeering
+- servicenetworking.services.createPeeredDnsDomain
 - servicenetworking.services.deleteConnection
+- servicenetworking.services.deletePeeredDnsDomain
 - servicenetworking.services.get
 - servicenetworking.services.listPeeredDnsDomains
-- servicenetworking.services.createPeeredDnsDomain
-- servicenetworking.services.deletePeeredDnsDomain
 
 # Cloud Storage
 
+- storage.buckets.create
 - storage.buckets.get           # To locate the bucket containing backups.
 - storage.buckets.list          # To access the bucket containing backups.
+- storage.buckets.setIamPolicy
 - storage.objects.get           # To read a specific backup object (file) from the bucket.
 - storage.objects.list          # To list all backup objects (files) in the bucket.
-- storage.buckets.create
-- storage.buckets.setIamPolicy
 EOL
 
 
