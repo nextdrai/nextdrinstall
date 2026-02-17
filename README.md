@@ -41,15 +41,15 @@ NextDR.ai introduces a **cyber recovery orchestration layer** that unifies and a
    * NextDR.ai enables enterprises to test full recovery scenarios in **isolated cleanrooms**, ensuring safe validation of recovery processes without impacting production systems.  
    * Continuous testing keeps recovery plans aligned with changing infrastructure and configurations.  
    * **Ability** to perform **virus** and **malware** **scans** within isolated **cleanrooms** before any recovery is promoted to production. By running these scans outside of live systems, organizations can confirm the integrity of their applications and data without putting production environments at risk.  
-4. **Compliance & Reporting  ( Coming Soon \- 1Q 2026 )**  
+4. **Compliance & Reporting**  
    * Built-in audit trails, compliance validation, and automated reporting for frameworks like NIST, ISO, and GDPR.   
    * Verifiable recovery drills with digital proof of readiness.  
 5. **Toolchain Integration**  
    * Current support for **Google Cloud Platform (GCP)**.  
-   * Roadmap: Support for **Azure and AWS** in 1Q 2026\.  
-   * Integration with Cohesity, Rubrik, Veeam, and CommVault also planned for 2026\.  
+   * Roadmap: Future support for **Azure and AWS**   
+   * Roadmap: Future Integration with Cohesity, Rubrik, Veeam, and CommVault
 6. **AI-Powered Orchestration (Coming Soon)**  
-   * AI orchestration features will be added in **4Q 2025**.  
+   * AI orchestration 
    * Intelligent agents will automate recovery steps, learn from past events, and continuously optimize execution.
 
 ---
