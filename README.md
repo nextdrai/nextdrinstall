@@ -87,23 +87,6 @@ The NextDR.ai platform is built on a modular architecture:
 * **Regulatory Readiness**: Automated compliance reduces audit risk and fines.  
 * **Resilience as a Competitive Edge**: Enhances trust with customers, investors, and regulators.
 
----
-
-## **High Level Roadmap**
-
-**Phase 1 (2025)**: Core orchestration platform with GCP support and foundational integrations.
-
-**Phase 2 (4Q 2025\)**: Launch of AI-powered orchestration features.
-
-**Phase 3 (1H 2026\)**: Expansion to Azure and AWS, plus integration with Cohesity, Rubrik, Veeam, and CommVault.
-
-**Phase 4** **(2026):**  Advanced AI-driven decisioning and predictive recovery planning.
-
----
-
-## **Conclusion**
-
-NextDR.ai is redefining cyber recovery by addressing the missing link between **backup tools** and **business continuity**. By providing an orchestration layer that not only restores data but also cloud configurations, and by enabling frequent recovery testing and malware execution in isolated cleanrooms, enterprises gain true readiness. With AI-driven automation launching in 4Q 2025, we enable enterprises not just to recover data, but to **recover faster, smarter, and with compliance assurance**.
 
 ---
 
