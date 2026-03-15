@@ -175,6 +175,7 @@ includedPermissions:
 - compute.instances.create      # To create a new VM instance.
 - compute.instances.setMetadata # To apply original metadata to the restored instance.
 - compute.instances.setTags     # To apply original network tags to the restored instance.
+- compute.instances.delete      # Needed for overwrite option during restore
 - compute.networks.list         # To list available networks for VM placement.
 - compute.projects.get          # To get project-level Compute Engine information.
 - compute.snapshots.create
