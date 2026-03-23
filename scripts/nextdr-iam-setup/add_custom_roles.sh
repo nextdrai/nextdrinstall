@@ -67,7 +67,7 @@ BACKUP_ROLE_ID="${BACKUP_ROLE_ID:-nextdr_backup}"
 BACKUP_ROLE_FILE=$(mktemp)
 # Write the role definition to the temporary file
 cat > "${BACKUP_ROLE_FILE}" << EOL
-title: "NextDR Backup Role"
+title: "NextDR Backup Role - ${BACKUP_ROLE_ID}"
 description: "Grants permissions required for NextDR to perform backup operations on GCP resources."
 stage: "BETA"
 includedPermissions:
@@ -153,7 +153,7 @@ RESTORE_ROLE_ID="${RESTORE_ROLE_ID:-nextdr_restore}"
 RESTORE_ROLE_FILE=$(mktemp)
 # Write the role definition to the temporary file
 cat > "${RESTORE_ROLE_FILE}" << EOL
-title: "NextDR Restore Role"
+title: "NextDR Restore Role - ${RESTORE_ROLE_ID}"
 description: "Grants permissions required for NextDR to restore GCP resources from backups."
 stage: "BETA"
 includedPermissions:
