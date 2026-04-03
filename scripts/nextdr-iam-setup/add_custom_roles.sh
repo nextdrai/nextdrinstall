@@ -248,7 +248,7 @@ includedPermissions:
 - cloudsql.instances.list       # To list existing instances, which may be the restore target.
 - cloudsql.instances.restoreBackup  # To initiate a restore from a backup run to an instance.
 - cloudsql.instances.update     # To make configuration changes to the instance after the restore.
-
+- cloudsql.instances.delete     # Needed for overwrite option during restore
 
 # Service Networking (private services access style connections)
 - servicenetworking.operations.get
