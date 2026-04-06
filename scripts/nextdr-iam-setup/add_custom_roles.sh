@@ -176,6 +176,8 @@ includedPermissions:
 - compute.instances.setMetadata # To apply original metadata to the restored instance.
 - compute.instances.setTags     # To apply original network tags to the restored instance.
 - compute.instances.delete      # Needed for overwrite option during restore
+- compute.instances.setLabels   # To apply original labels to the restored instance.
+- compute.instances.setServiceAccount # To set the service account on the restored instance.
 - compute.networks.list         # To list available networks for VM placement.
 - compute.projects.get          # To get project-level Compute Engine information.
 - compute.snapshots.create
