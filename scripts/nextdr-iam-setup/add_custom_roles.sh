@@ -232,6 +232,7 @@ includedPermissions:
 - compute.addresses.get
 - compute.addresses.list
 - compute.addresses.use
+- compute.globalAddresses.create
 
 # Firewalls (NOTE: read-only in networkAdmin)
 - compute.firewalls.create
