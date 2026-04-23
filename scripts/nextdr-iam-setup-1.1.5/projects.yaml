@@ -1,0 +1,14 @@
+# Project IDs for creating/updating custom IAM roles
+nextdr: "nextdr2"
+source: "source2-480914"
+target: "target2-480915"
+
+
+# Required: service account IDs per project
+nextdr_service_account: "nextdr-service-software-kam"
+source_service_account: "nextdr-service-source-kam"
+target_service_account: "nextdr-service-target-kam"
+
+# Optional: custom role IDs (defaults: nextdr_backup, nextdr_restore)
+backup_role_id: "nextdr_backup_kam"
+restore_role_id: "nextdr_restore_kam"

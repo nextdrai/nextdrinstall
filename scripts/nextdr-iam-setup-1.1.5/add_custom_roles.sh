@@ -79,6 +79,7 @@ includedPermissions:
 - compute.snapshots.list
 - compute.snapshots.useReadOnly
 - compute.snapshots.getIamPolicy
+- compute.snapshots.setIamPolicy
 - compute.snapshots.delete
 - compute.instances.get
 - compute.instances.list
@@ -125,6 +126,7 @@ includedPermissions:
 - compute.snapshots.create
 - compute.snapshots.get
 - compute.snapshots.list
+- compute.snapshots.setIamPolicy
 - compute.snapshots.useReadOnly
 - storagetransfer.agentpools.create
 - storagetransfer.agentpools.delete
