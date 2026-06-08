@@ -1308,7 +1308,31 @@ CREATE TABLE public.resource_backup (
     resource_id text DEFAULT ''::text NOT NULL,
     resource_type text NOT NULL,
     source jsonb DEFAULT '{}'::jsonb NOT NULL,
-    destination jsonb DEFAULT '{}'::jsonb NOT NULL
+    destination jsonb DEFAULT '{}'::jsonb NOT NULL,
+    selected_modes text[],
+    overall_status text
+);
+
+
+--
+-- Name: resource_backup_mode_result; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.resource_backup_mode_result (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    resource_backup_id uuid NOT NULL,
+    backup_mode text NOT NULL,
+    preflight_status text DEFAULT 'pending'::text NOT NULL,
+    preflight_details jsonb,
+    execution_status text DEFAULT 'pending'::text NOT NULL,
+    external_backup_id text,
+    artifact_meta jsonb,
+    error_code text,
+    error_message text,
+    started_at timestamp with time zone,
+    completed_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -2130,6 +2154,54 @@ ALTER TABLE ONLY public.recovery_steps
 
 
 --
+-- Name: resource_backup resource_backup_overall_status_check; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_backup
+    ADD CONSTRAINT resource_backup_overall_status_check CHECK (((overall_status IS NULL) OR (overall_status = ANY (ARRAY['in_progress'::text, 'completed'::text, 'failed'::text]))));
+
+
+--
+-- Name: resource_backup_mode_result rbmr_backup_mode_check; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_backup_mode_result
+    ADD CONSTRAINT rbmr_backup_mode_check CHECK ((backup_mode = ANY (ARRAY['db_export'::text, 'local_snapshot'::text, 'enhanced_backup'::text])));
+
+
+--
+-- Name: resource_backup_mode_result rbmr_execution_status_check; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_backup_mode_result
+    ADD CONSTRAINT rbmr_execution_status_check CHECK ((execution_status = ANY (ARRAY['pending'::text, 'skipped'::text, 'succeeded'::text, 'failed'::text])));
+
+
+--
+-- Name: resource_backup_mode_result rbmr_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_backup_mode_result
+    ADD CONSTRAINT rbmr_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: resource_backup_mode_result rbmr_preflight_status_check; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_backup_mode_result
+    ADD CONSTRAINT rbmr_preflight_status_check CHECK ((preflight_status = ANY (ARRAY['pending'::text, 'skipped'::text, 'succeeded'::text, 'failed'::text])));
+
+
+--
+-- Name: resource_backup_mode_result rbmr_unique_mode_per_backup; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_backup_mode_result
+    ADD CONSTRAINT rbmr_unique_mode_per_backup UNIQUE (resource_backup_id, backup_mode);
+
+
+--
 -- Name: resource_backup resource_backup_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2467,6 +2539,41 @@ CREATE INDEX idx_recovery_steps_assignee ON public.recovery_steps_new (assignee_
 --
 
 CREATE INDEX idx_recovery_steps_recovery_plan_id ON public.recovery_steps_new USING btree (recovery_plan_id);
+
+
+--
+-- Name: idx_rbmr_backup_mode; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_rbmr_backup_mode ON public.resource_backup_mode_result USING btree (backup_mode);
+
+
+--
+-- Name: idx_rbmr_external_backup_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_rbmr_external_backup_id ON public.resource_backup_mode_result USING btree (external_backup_id);
+
+
+--
+-- Name: idx_rbmr_mode_status_completed; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_rbmr_mode_status_completed ON public.resource_backup_mode_result USING btree (backup_mode, execution_status, completed_at DESC);
+
+
+--
+-- Name: idx_rbmr_resource_backup_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_rbmr_resource_backup_id ON public.resource_backup_mode_result USING btree (resource_backup_id);
+
+
+--
+-- Name: idx_resource_backup_resource_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_resource_backup_resource_id ON public.resource_backup USING btree (resource_id);
 
 
 --
@@ -2979,6 +3086,49 @@ ALTER TABLE ONLY public.recovery_steps_new
 
 ALTER TABLE ONLY public.recovery_steps
     ADD CONSTRAINT recovery_steps_recovery_plan_id_fkey FOREIGN KEY (recovery_plan_id) REFERENCES public.recovery_plans(id) ON DELETE CASCADE;
+
+
+--
+-- Name: resource_backup_mode_result rbmr_resource_backup_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_backup_mode_result
+    ADD CONSTRAINT rbmr_resource_backup_id_fkey FOREIGN KEY (resource_backup_id) REFERENCES public.resource_backup(id) ON DELETE CASCADE;
+
+
+--
+-- Name: Backfill historical database resource backups for multimode schema; Type: DATA; Schema: public; Owner: -
+--
+
+-- Backfill: mark historical database resource_backup rows as single-mode db_export
+UPDATE public.resource_backup
+SET selected_modes = ARRAY['db_export'],
+    overall_status = status
+WHERE resource_type = 'database'
+  AND (selected_modes IS NULL OR cardinality(selected_modes) = 0);
+
+-- Synthesize child rows so that future restore-point queries return historical export backups.
+INSERT INTO public.resource_backup_mode_result
+    (resource_backup_id, backup_mode, preflight_status, execution_status,
+     external_backup_id, artifact_meta, started_at, completed_at)
+SELECT
+    rb.id,
+    'db_export',
+    CASE WHEN rb.status IN ('completed', 'failed') THEN 'succeeded' ELSE 'pending' END,
+    CASE
+        WHEN rb.status = 'completed' THEN 'succeeded'
+        WHEN rb.status = 'failed' THEN 'failed'
+        ELSE 'pending'
+    END,
+    NULLIF(rb.artifact_uri, ''),
+    rb.config,
+    rb.started_at,
+    rb.completed_at
+FROM public.resource_backup rb
+LEFT JOIN public.resource_backup_mode_result rbm
+    ON rbm.resource_backup_id = rb.id AND rbm.backup_mode = 'db_export'
+WHERE rb.resource_type = 'database'
+  AND rbm.id IS NULL;
 
 
 
@@ -3969,6 +4119,12 @@ ALTER TABLE public.recovery_steps_new ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.resource_backup ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: resource_backup_mode_result; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.resource_backup_mode_result ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: role_permissions; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -4798,6 +4954,15 @@ GRANT ALL ON TABLE public.recovery_steps_new TO service_role;
 GRANT ALL ON TABLE public.resource_backup TO anon;
 GRANT ALL ON TABLE public.resource_backup TO authenticated;
 GRANT ALL ON TABLE public.resource_backup TO service_role;
+
+
+--
+-- Name: TABLE resource_backup_mode_result; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.resource_backup_mode_result TO anon;
+GRANT ALL ON TABLE public.resource_backup_mode_result TO authenticated;
+GRANT ALL ON TABLE public.resource_backup_mode_result TO service_role;
 
 
 --
