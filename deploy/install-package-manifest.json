@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "product": "NextDR",
-  "generated_at_utc": "2026-05-26T16:13:34Z",
+  "generated_at_utc": "2026-06-11T01:09:33Z",
   "schema_diffs": [
     {
       "from_version": "1.1.5",
@@ -27,7 +27,7 @@
       "from_version": "1.1.7",
       "to_version": "1.1.8",
       "release_dir": "1.1.8",
-      "release_mode": "PRIVATE",
+      "release_mode": "PUBLIC",
       "full_schema_file": "NDR-schema.sql",
       "diff_schema_file": "NDR-schema-diff.sql",
       "baseline_schema_sha256": "a014ddade1f0a50fe4857374b544b02d12671e796f0ce1fa2a5fd2d9720d853c",
