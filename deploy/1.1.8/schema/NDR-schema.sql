@@ -1162,6 +1162,7 @@ CREATE TABLE public.recovery_plans_new (
     estimated_total_minutes integer,
     rto_achievable boolean,
     rto_risk_message text,
+    region_quota_fallback_enabled boolean DEFAULT false NOT NULL,
     ---CONSTRAINT recovery_plans_new_execution_status_check CHECK ((execution_status = ANY (ARRAY['not_started'::text, 'in_progress'::text, 'paused'::text, 'completed'::text, 'failed'::text])))
     constraint recovery_plans_new_execution_status_check check ((execution_status = any (array['not_started'::text,'in_progress'::text,'paused'::text,'completed'::text,'stopped'::text,'failed'::text])))
 
@@ -1173,6 +1174,13 @@ CREATE TABLE public.recovery_plans_new (
 --
 
 COMMENT ON TABLE public.recovery_plans_new IS 'This is a duplicate of recovery_plans';
+
+
+--
+-- Name: COLUMN recovery_plans_new.region_quota_fallback_enabled; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.recovery_plans_new.region_quota_fallback_enabled IS 'If true, VM restore cycles through available zones in the target region when the preferred zone lacks capacity or hits quota limits.';
 
 
 --
