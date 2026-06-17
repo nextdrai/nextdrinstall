@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "product": "NextDR",
-  "generated_at_utc": "2026-06-11T06:00:55Z",
+  "generated_at_utc": "2026-06-17T02:56:00Z",
   "schema_diffs": [
     {
       "from_version": "1.1.5",
@@ -32,6 +32,16 @@
       "diff_schema_file": "NDR-schema-diff.sql",
       "baseline_schema_sha256": "a014ddade1f0a50fe4857374b544b02d12671e796f0ce1fa2a5fd2d9720d853c",
       "upgrade_schema_sha256": "cbb394d173fea07cfbc94ed814af41cf8fcf5a822c80d0bb80dd87ad2ea7ed35"
+    },
+    {
+      "from_version": "1.1.8",
+      "to_version": "1.1.9",
+      "release_dir": "1.1.9",
+      "release_mode": "PUBLIC",
+      "full_schema_file": "NDR-schema.sql",
+      "diff_schema_file": "NDR-schema-diff.sql",
+      "baseline_schema_sha256": "cbb394d173fea07cfbc94ed814af41cf8fcf5a822c80d0bb80dd87ad2ea7ed35",
+      "upgrade_schema_sha256": "bc2e5bcb91696e4fa61aaef00e760c0c63e59aa10c08673f9a7e227bbf71160e"
     }
   ]
 }
