@@ -17,7 +17,7 @@
       "from_version": "1.1.6",
       "to_version": "1.1.7",
       "release_dir": "1.1.7",
-      "release_mode": "PRIVATE",
+      "release_mode": "PUBLIC",
       "full_schema_file": "NDR-schema.sql",
       "diff_schema_file": "NDR-schema-diff.sql",
       "baseline_schema_sha256": "2d0680a79c3f1c85d7c1d291912bf222dcc9033ad5d6c64be1040cf0f631e16d",
