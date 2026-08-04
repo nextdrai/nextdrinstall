@@ -1223,6 +1223,24 @@ CREATE TABLE public.recovery_step_execution (
 
 
 --
+-- Name: step_execution_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.step_execution_messages (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    recovery_run_id bigint NOT NULL,
+    step_execution_id bigint NOT NULL,
+    severity text NOT NULL,
+    code text NOT NULL,
+    message text NOT NULL,
+    retryable boolean DEFAULT false NOT NULL,
+    context jsonb DEFAULT '{}'::jsonb,
+    emitted_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: recovery_step_execution_step_execution_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1536,7 +1554,12 @@ CREATE TABLE public.user_license (
     id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     license_key text,
-    "isActive" boolean
+    "isActive" boolean,
+    features jsonb DEFAULT '{}'::jsonb NOT NULL,
+    capacity_limits jsonb DEFAULT '{}'::jsonb NOT NULL,
+    expires_at timestamp with time zone,
+    customer_email text,
+    license_token text
 );
 
 
@@ -1545,6 +1568,41 @@ CREATE TABLE public.user_license (
 --
 
 COMMENT ON TABLE public.user_license IS 'Storage for fetching and updating user license';
+
+
+--
+-- Name: COLUMN user_license.features; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_license.features IS 'Enabled features list or configuration json';
+
+
+--
+-- Name: COLUMN user_license.capacity_limits; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_license.capacity_limits IS 'License capacity limits json';
+
+
+--
+-- Name: COLUMN user_license.expires_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_license.expires_at IS 'License expiration date';
+
+
+--
+-- Name: COLUMN user_license.customer_email; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_license.customer_email IS 'Email of the customer the license is registered to';
+
+
+--
+-- Name: COLUMN user_license.license_token; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_license.license_token IS 'Cryptographically signed license JWT from the license server';
 
 
 
@@ -1749,6 +1807,14 @@ CREATE POLICY "Authenticated users can delete execution_run_reports"
     FOR DELETE
     TO authenticated
     USING (auth.role() = 'authenticated'::text);
+
+
+CREATE POLICY "Authenticated users can access step_execution_messages"
+    ON public.step_execution_messages
+    FOR ALL
+    TO authenticated
+    USING (auth.role() = 'authenticated'::text)
+    WITH CHECK (auth.role() = 'authenticated'::text);
 
 
 
@@ -2146,6 +2212,22 @@ ALTER TABLE ONLY public.recovery_step_execution
 
 
 --
+-- Name: step_execution_messages step_execution_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.step_execution_messages
+    ADD CONSTRAINT step_execution_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: step_execution_messages step_execution_messages_severity_check; Type: CHECK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.step_execution_messages
+    ADD CONSTRAINT step_execution_messages_severity_check CHECK ((severity = ANY (ARRAY['INFO'::text, 'WARNING'::text, 'ERROR'::text])));
+
+
+--
 -- Name: recovery_steps_new recovery_steps_new_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2534,6 +2616,27 @@ CREATE INDEX idx_recovery_plan_step_generations_plan_id ON public.recovery_plan_
 --
 
 CREATE INDEX idx_recovery_plan_step_generations_status ON public.recovery_plan_step_generations USING btree (plan_id, status) WHERE (status = 'generating'::text);
+
+
+--
+-- Name: idx_step_execution_messages_run_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_step_execution_messages_run_id ON public.step_execution_messages USING btree (recovery_run_id);
+
+
+--
+-- Name: idx_step_execution_messages_severity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_step_execution_messages_severity ON public.step_execution_messages USING btree (severity);
+
+
+--
+-- Name: idx_step_execution_messages_step_exec_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_step_execution_messages_step_exec_id ON public.step_execution_messages USING btree (step_execution_id);
 
 
 --
@@ -3078,6 +3181,22 @@ ALTER TABLE ONLY public.recovery_step_execution
 --
 ALTER TABLE ONLY public.recovery_step_execution
     ADD CONSTRAINT recovery_step_execution_step_id_fkey FOREIGN KEY (step_id) REFERENCES public.recovery_steps_new(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: step_execution_messages step_execution_messages_recovery_run_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.step_execution_messages
+    ADD CONSTRAINT step_execution_messages_recovery_run_id_fkey FOREIGN KEY (recovery_run_id) REFERENCES public.recovery_plan_execution(id) ON DELETE CASCADE;
+
+
+--
+-- Name: step_execution_messages step_execution_messages_step_execution_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.step_execution_messages
+    ADD CONSTRAINT step_execution_messages_step_execution_id_fkey FOREIGN KEY (step_execution_id) REFERENCES public.recovery_step_execution(step_execution_id) ON DELETE CASCADE;
 
 
 --
@@ -4109,6 +4228,13 @@ ALTER TABLE public.recovery_plans_new ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recovery_step_dependencies ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: step_execution_messages; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.step_execution_messages ENABLE ROW LEVEL SECURITY;
+
+
+--
 -- Name: recovery_steps; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -4926,6 +5052,15 @@ GRANT ALL ON TABLE public.recovery_step_dependencies TO service_role;
 GRANT ALL ON TABLE public.recovery_step_execution TO anon;
 GRANT ALL ON TABLE public.recovery_step_execution TO authenticated;
 GRANT ALL ON TABLE public.recovery_step_execution TO service_role;
+
+
+--
+-- Name: TABLE step_execution_messages; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE public.step_execution_messages FROM anon;
+GRANT ALL ON TABLE public.step_execution_messages TO authenticated;
+GRANT ALL ON TABLE public.step_execution_messages TO service_role;
 
 
 --
