@@ -1,97 +1,49 @@
-# **NextDR.ai**
+# NextDR.ai
 
-www.nextdr.ai
+[www.nextdr.ai](https://www.nextdr.ai)
 
-AI-powered disaster recovery orchestration platform. NextDR.ai automates recovery steps, coordinates teams, and integrates with existing backup tools to ensure fast, compliant, and reliable cyber recovery.
+NextDR.ai is an AI-powered cyber recovery orchestration platform that helps enterprises recover faster from ransomware, cyberattacks, outages, and other disruptive events. It automates recovery workflows, coordinates teams, integrates with existing backup and disaster recovery tools, and provides audit-ready proof of recovery readiness.
 
+## Get Started
 
-## **Executive Summary**
+- Install documentation: [https://nextdr-ai.gitbook.io/nextdr.ai-docs](https://nextdr-ai.gitbook.io/nextdr.ai-docs)
+- Free license: [https://license.nextdr.ai/login?next=%2Fportal](https://license.nextdr.ai/login?next=%2Fportal)
 
-Enterprises are facing a new reality: **cyberattacks, ransomware, and large-scale outages** are not rare events, but ongoing operational risks. Despite investing heavily in **backup and disaster recovery (DR) technologies**, most organizations still struggle to restore critical systems quickly and consistently when an incident occurs. Traditional solutions focus primarily on **data restoration**, but they leave gaps in recovering the larger **business environment** — including **infrastructure, applications, and multi-team workflows**. The result is **prolonged downtime, fragmented response efforts, high recovery costs, and compliance violations**.
+## Why NextDR.ai
 
-**NextDR.ai** addresses this gap with the first **AI-driven cyber recovery orchestration platform**. Built to integrate with existing **cloud native and on-prem backup and DR tools**, NextDR.ai goes beyond simple data recovery to deliver **full operational resilience**. Our platform can recover not only **compute instances and databases** but also **complete cloud infrastructure**, leveraging **cloud native services and APIs** to automate **environment rebuilds, dependencies, and configurations**. By orchestrating **complex, multi-team workflows**, NextDR.ai eliminates **manual coordination**, accelerates **recovery timelines**, and ensures **consistency** across every stage of the process.
+Traditional disaster recovery tools focus on restoring data, but recovery also requires infrastructure, applications, security checks, team coordination, and compliance evidence. These steps are often handled manually through disconnected tools, spreadsheets, and runbooks, which increases downtime and recovery risk.
 
-Equally important, NextDR.ai embeds **automation** and **compliance** into recovery operations. Every recovery plan is **verifiable**, with **audit trails, compliance checks, and integrated validation** of security controls such as **malware scans in isolated cleanrooms** before workloads return to production. This allows enterprises to **prove recovery readiness** to regulators, internal stakeholders, and customers. With NextDR.ai, organizations transform disaster recovery from a **manual, data-centric activity** into an **automated, cloud-native, business-aligned process** — enabling **faster recovery, lower costs, and stronger resilience** in the face of modern threats.
+NextDR.ai provides an orchestration layer for the full recovery lifecycle, helping organizations rebuild environments, validate clean recovery points, automate multi-team workflows, and prove readiness to auditors and stakeholders.
 
----
+## Key Capabilities
 
-## **The Problem**
+- **Comprehensive recovery**: Restore compute instances, databases, cloud infrastructure, network configuration, IAM roles, service accounts, and related dependencies.
+- **Workflow automation**: Build and execute recovery playbooks with step tracking, status monitoring, error handling, and rollback support.
+- **Cleanroom recovery testing**: Validate recovery plans in isolated environments without impacting production.
+- **Security validation**: Run malware and virus scans in cleanrooms before promoting recovered workloads back to production.
+- **Compliance reporting**: Generate audit trails, validation evidence, and reports for frameworks such as NIST, ISO, and GDPR.
+- **Toolchain integration**: Current support for Google Cloud Platform (GCP), with Azure, AWS, and backup-platform integrations planned.
+- **AI-powered orchestration**: Planned intelligent agents will help automate recovery steps, learn from prior events, and optimize execution.
 
-* **Fragmented Recovery Tools**: Most organizations use a patchwork of backup software, infrastructure recovery systems, and manual runbooks. These tools rarely integrate smoothly.  
-* **Manual & Error-Prone Processes**: Recovery plans involve dozens of steps across teams (infrastructure, security, applications, compliance). Most are still tracked in spreadsheets and word documents.  
-* **Recovery Testing Gaps**: The primary reason most recovery plans fail is because **testing is not done frequently enough**. Infrastructure and configurations change far more frequently than recovery drills are performed, leaving plans outdated and ineffective.  
-* **Downtime Costs**: The average ransomware recovery time exceeds 3 weeks. Downtime costs range from $300,000 to $1M per hour depending on the industry.  
-* **Compliance & Reporting Gaps**: Regulators now demand proof of recovery readiness. Current approaches cannot provide automated reporting or audit trails.
+## Architecture
 
----
+NextDR.ai uses a modular architecture built around:
 
-## **The NextDR.ai Solution**
+- **Backup and recovery engine** for data, compute, and cloud configuration recovery.
+- **Orchestration engine** for asynchronous workflow execution, monitoring, rollback, and error management.
+- **Cleanroom testing environment** for safe recovery validation and security scanning.
+- **Integration layer** for cloud, backup, virtualization, and security platforms.
+- **Compliance module** for real-time reporting and audit evidence.
+- **AI recovery agent** planned to provide decision support and execution optimization.
 
-NextDR.ai introduces a **cyber recovery orchestration layer** that unifies and automates recovery across people, processes, and technology.
+## Business Impact
 
-### **Key Capabilities**
+- Reduce recovery time through automated execution and coordination.
+- Lower operational recovery costs through repeatable testing.
+- Improve recovery success with continuous validation.
+- Strengthen compliance posture with audit-ready evidence.
+- Build customer, regulator, and stakeholder confidence in cyber resilience.
 
-1. **Comprehensive Backup & Recovery**  
-   * Backups not only compute instances and databases but also full **cloud configuration and infrastructure**, including VPCs, firewalls, service accounts, and roles.  
-   * Ensures organizations can restore both data and the critical cloud environment needed to operate.  
-2. **Workflow Automation**  
-   * Visual drag-and-drop interface to design recovery playbooks.  
-   * Real-time execution engine with step tracking, status monitoring, and error handling.  
-3. **Recovery Testing in Isolated Cleanrooms**  
-   * NextDR.ai enables enterprises to test full recovery scenarios in **isolated cleanrooms**, ensuring safe validation of recovery processes without impacting production systems.  
-   * Continuous testing keeps recovery plans aligned with changing infrastructure and configurations.  
-   * **Ability** to perform **virus** and **malware** **scans** within isolated **cleanrooms** before any recovery is promoted to production. By running these scans outside of live systems, organizations can confirm the integrity of their applications and data without putting production environments at risk.  
-4. **Compliance & Reporting**  
-   * Built-in audit trails, compliance validation, and automated reporting for frameworks like NIST, ISO, and GDPR.   
-   * Verifiable recovery drills with digital proof of readiness.  
-5. **Toolchain Integration**  
-   * Current support for **Google Cloud Platform (GCP)**.  
-   * Roadmap: Future support for **Azure and AWS**   
-   * Roadmap: Future Integration with Cohesity, Rubrik, Veeam, and CommVault
-6. **AI-Powered Orchestration (Coming Soon)**  
-   * AI orchestration 
-   * Intelligent agents will automate recovery steps, learn from past events, and continuously optimize execution.
+## About NextDR.ai
 
----
-
-## **Architecture Overview**
-
-The NextDR.ai platform is built on a modular architecture:
-
-* **Backup & Recovery Engine**: Manages both compute/data recovery and full cloud infrastructure configuration recovery.  
-* **Orchestration Engine**: Executes recovery workflows asynchronously, with rollback and error management.  
-* **AI Recovery Agent (Planned 4Q 2025\)**: Will learn optimal execution paths, predict bottlenecks, and provide decision support.  
-* **Cleanroom Testing Environment**: Enables automated full recovery drills in isolated, secure environments, including the ability to safely execute malware payloads for validation.  
-* **Integration Layer**: Prebuilt connectors to backup, virtualization, cloud, and security platforms.  
-* **Compliance Module**: Generates real-time compliance reports and ensures alignment with regulatory standards.
-
----
-
-## **Competitive Advantage**
-
-* **Recovery vs. Backup**: Unlike backup vendors, we focus on orchestrating the *entire recovery lifecycle*.  
-* **Cloud Infrastructure Recovery**: Only platform that restores both application data and full cloud configurations (network, roles, security policies).  
-* **Continuous Testing**: Frequent recovery validation in isolated cleanrooms ensures readiness and prevents failed recoveries.  
-* **Malware Validation**: Unique capability to execute malware in secure cleanrooms to verify recovery and detection processes.  
-* **AI Differentiation**: AI-driven orchestration (launching 4Q 2025\) will adapt to evolving IT environments, unlike static runbooks.  
-* **Vendor-Agnostic**: Works across existing tools, preventing vendor lock-in.  
-* **Audit-Ready**: First platform with compliance automation built into recovery execution.
-
----
-
-## **Business Impact**
-
-* **Recovery Time Reduction**: Reduce recovery time through workflow automation  
-* **Cost Savings**: Reduces operational recovery costs by up to 60% via automated recovery testing.  
-* **Reduced Failure Rates**: Continuous testing and malware validation in cleanrooms ensure higher recovery success.  
-* **Regulatory Readiness**: Automated compliance reduces audit risk and fines.  
-* **Resilience as a Competitive Edge**: Enhances trust with customers, investors, and regulators.
-
-
----
-
-## **About NextDR.ai**
-
-NextDR.ai is a cyber recovery orchestration company founded by technology leaders with decades of experience in enterprise data protection, cloud computing, and AI/ML innovation. Our mission is to make cyber recovery fast, reliable, and compliant for every enterprise.
-
----
+NextDR.ai is a cyber recovery orchestration company founded by technology leaders with deep experience in enterprise data protection, cloud computing, and AI/ML. Its mission is to make cyber recovery faster, more reliable, and easier to prove.
