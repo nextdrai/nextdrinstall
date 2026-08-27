@@ -1123,8 +1123,37 @@ CREATE TABLE public.recovery_plan_step_generations (
     error text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    user_prompt text,
+    scenario_type text,
+    llm_provider_type text,
+    llm_model text,
+    enrichment_status text DEFAULT 'pending'::text NOT NULL,
+    proposed_steps_count integer DEFAULT 0 NOT NULL,
+    CONSTRAINT recovery_plan_step_generations_enrichment_status_check CHECK ((enrichment_status = ANY (ARRAY['pending'::text, 'enriching'::text, 'completed'::text, 'failed'::text, 'skipped'::text]))),
+    CONSTRAINT recovery_plan_step_generations_scenario_type_check CHECK (((scenario_type IS NULL) OR (scenario_type = ANY (ARRAY['cleanroom'::text, 'malware'::text, 'new_region'::text, 'custom'::text])))),
     CONSTRAINT recovery_plan_step_generations_status_check CHECK ((status = ANY (ARRAY['queued'::text, 'generating'::text, 'completed'::text, 'failed'::text])))
 );
+
+
+--
+-- Name: COLUMN recovery_plan_step_generations.user_prompt; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.recovery_plan_step_generations.user_prompt IS 'Exact user-submitted scenario prompt (max 4000 chars enforced in API).';
+
+
+--
+-- Name: COLUMN recovery_plan_step_generations.scenario_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.recovery_plan_step_generations.scenario_type IS 'Derived scenario: cleanroom | malware | new_region | custom.';
+
+
+--
+-- Name: COLUMN recovery_plan_step_generations.enrichment_status; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.recovery_plan_step_generations.enrichment_status IS 'LLM enrichment phase status; skeleton may complete while enrichment fails.';
 
 
 --
